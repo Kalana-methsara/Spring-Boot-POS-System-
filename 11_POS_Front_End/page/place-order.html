@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Place Order</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    h2, h3 {
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    #orderForm {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      display: block;
+      margin-top: 10px;
+    }
+
+    input, select {
+      padding: 10px;
+      margin-top: 5px;
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+      transition: 0.2s ease;
+      font-size: 14px;
+    }
+
+    input:focus, select:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+
+    button {
+      padding: 10px 16px;
+      margin-top: 15px;
+      margin-right: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    button[onclick="addToCart()"] {
+      background: #3b82f6;
+      color: white;
+    }
+
+    button[onclick="placeOrder()"] {
+      background: #10b981;
+      color: white;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      font-weight: 600;
+      color: #334155;
+    }
+
+    tbody tr {
+      border-top: 1px solid #e2e8f0;
+      transition: 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    #grandTotal {
+      font-weight: 600;
+      color: #0f172a;
+    }
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(30,41,59,0.25);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(30,41,59,0.15);
+      padding: 32px 32px 24px 32px;
+      max-width: 420px;
+      min-width: 320px;
+      color: #1e293b;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      position: relative;
+      animation: billPop 0.2s cubic-bezier(.25,.8,.25,1);
+    }
+    @keyframes billPop {
+      0% { transform: scale(0.95) translateY(24px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: .5px;
+      text-align: center;
+    }
+    .bill-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    .bill-table th, .bill-table td {
+      text-align: left;
+      padding: 6px 8px;
+      font-size: 14px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .bill-table th {
+      background: #f1f5f9;
+      font-weight: 600;
+      color: #334155;
+    }
+    .bill-row:last-child td {
+      border-bottom: none;
+    }
+    .bill-summary {
+      font-weight: 600;
+      text-align: right;
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #0f172a;
+    }
+    .modal-close-btn {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      float: right;
+      margin-top: 10px;
+    }
+    .modal-close-btn:hover {
+      background: #dc2626;
+    }
+  </style>
+<!-- Bill Modal -->
+<div class="modal-overlay" id="billModal">
+  <div class="modal-content">
+    <h3>Order Bill</h3>
+    <div id="billDetails"></div>
+    <button class="modal-close-btn" onclick="confirmBill()">Confirm</button>
+  </div>
+</div>
+</head>
+
+<body>
+
+<h2>Place Order</h2>
+
+<div id="orderForm">
+  <label>Order ID</label>
+  <input type="text" id="orderId"><br>
+
+  <label>Customer</label>
+  <input type="text" id="customer"><br>
+
+  <label>Item</label>
+  <select id="itemSelect">
+    <option value="Pen-100">Pen - 100</option>
+    <option value="Book-500">Book - 500</option>
+    <option value="Bag-2000">Bag - 2000</option>
+  </select><br>
+
+  <label>Qty</label>
+  <input type="number" id="qty"><br>
+
+  <button onclick="addToCart()">Add To Cart</button>
+</div>
+
+<h3>Cart</h3>
+
+<table id="cartTable">
+  <thead>
+  <tr>
+    <th>Item</th>
+    <th>Price</th>
+    <th>Qty</th>
+    <th>Total</th>
+  </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h3>Total Amount: <span id="grandTotal">0</span></h3>
+<button onclick="placeOrder()">Place Order</button>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+  let cart = [];
+  let grandTotal = 0;
+
+  // -------- LOAD CUSTOMERS --------
+  function loadCustomers(){
+    $.ajax({
+      url:"http://localhost:8080/api/v1/customer",
+      method:"GET",
+      success:function(res){
+
+        let options = '<option value="">Select Customer</option>';
+
+        if(res.status === 200 && res.data){
+
+          res.data.forEach(function(c){
+            options += `<option value="${c.id}">
+                          ${c.id} - ${c.name}
+                      </option>`;
+          });
+
+        }
+
+        $("#customer").replaceWith(`
+            <select id="customer">
+                ${options}
+            </select>
+        `);
+
+      }
+    });
+  }
+
+  // -------- LOAD ITEMS --------
+  function loadItems(){
+    $.ajax({
+      url:"http://localhost:8080/api/v1/item",
+      method:"GET",
+      success:function(res){
+
+        let options = '<option value="">Select Item</option>';
+
+        if(res.status === 200 && res.data){
+
+          res.data.forEach(function(item){
+            options += `<option value="${item.id}"
+                      data-price="${item.price}"
+                      data-qty="${item.qty}">
+                  ${item.name} - ${item.price} (Stock: ${item.qty})
+              </option>`;
+          });
+
+        }
+
+        $("#itemSelect").html(options);
+      }
+    });
+  }
+
+  // -------- ADD TO CART --------
+  function addToCart(){
+
+    const itemId = $("#itemSelect").val();
+    const itemText = $("#itemSelect option:selected").text();
+    const itemName = itemText.split(" - ")[0];
+    const price = parseFloat($("#itemSelect option:selected").data("price"));
+    const qty = parseInt($("#qty").val());
+    const stockQty = parseInt($("#itemSelect option:selected").data("qty"));
+
+    if(qty > stockQty){
+      alert("Not enough stock available. Available: " + stockQty);
+      return;
+    }
+
+    if(!itemId || !qty){
+      alert("Select item and qty");
+      return;
+    }
+
+    const total = price * qty;
+    grandTotal += total;
+
+    cart.push({
+      itemId:itemId,
+      price:price,
+      qty:qty,
+      total:total
+    });
+
+    $("#cartTable tbody").append(`
+        <tr>
+            <td>${itemId} - ${itemName}</td>
+            <td>${price}</td>
+            <td>${qty}</td>
+            <td>${total}</td>
+        </tr>
+    `);
+
+    $("#grandTotal").text(grandTotal);
+    $("#qty").val("");
+  }
+
+  // -------- PLACE ORDER --------
+  function placeOrder(){
+    const orderId = $("#orderId").val();
+    const customerId = $("#customer").val();
+
+    if(!orderId || !customerId || cart.length === 0){
+      alert("Fill all details");
+      return;
+    }
+
+    const orderData = {
+      orderId: orderId,
+      customerId: customerId,
+      orderDetails: cart
+    };
+
+    $.ajax({
+      url:"http://localhost:8080/api/v1/order/place",
+      method:"POST",
+      contentType:"application/json",
+      data: JSON.stringify(orderData),
+      success:function(){
+        // Build a professional bill modal
+        let html = '';
+        html += `<div><strong>Order ID:</strong> ${orderId}</div>`;
+        html += `<div><strong>Customer ID:</strong> ${customerId}</div>`;
+        html += `<br>`;
+        html += `<table class="bill-table">`;
+        html += `<thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead><tbody>`;
+        cart.forEach(function(item){
+          html += `<tr class="bill-row">
+            <td>${item.itemId}</td>
+            <td>${item.price}</td>
+            <td>${item.qty}</td>
+            <td>${item.total}</td>
+          </tr>`;
+        });
+        html += `</tbody></table>`;
+        html += `<div class="bill-summary">Grand Total: ${grandTotal}</div>`;
+        $("#billDetails").html(html);
+        $("#billModal").addClass("active");
+        // Reset order after showing the bill
+        resetOrder();
+      },
+      error:function(){
+        alert("Order Failed");
+      }
+    });
+  }
+
+  function confirmBill() {
+    $("#billModal").removeClass("active");
+    $("#billDetails").html("");
+    // Show success alert after modal is dismissed
+    setTimeout(function() {
+      alert("Order placed successfully!");
+    }, 200);
+  }
+
+  // -------- RESET --------
+  function resetOrder(){
+    cart = [];
+    grandTotal = 0;
+    $("#cartTable tbody").html("");
+    $("#grandTotal").text("0");
+    $("#orderId").val("");
+  }
+
+  // -------- ON LOAD --------
+  $(document).ready(function(){
+    loadCustomers();
+    loadItems();
+  });
+
+</script>
+
+
+</body>
+</html>

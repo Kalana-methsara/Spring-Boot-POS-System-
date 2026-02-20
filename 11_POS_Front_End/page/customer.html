@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Management</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    #customerForm {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 100%;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      display: block;
+      margin-top: 10px;
+    }
+
+    input {
+      padding: 10px;
+      margin-top: 5px;
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+      transition: 0.2s ease;
+      font-size: 14px;
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+
+    button {
+      padding: 10px 16px;
+      margin-top: 15px;
+      margin-right: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: 0.2s ease;
+    }
+
+    #saveBtn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    #updateBtn {
+      background: #10b981;
+      color: white;
+    }
+
+    #deleteBtn {
+      background: #ef4444;
+      color: white;
+    }
+
+    #resetBtn {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      font-weight: 600;
+      color: #334155;
+    }
+
+    tbody tr {
+      border-top: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    tr.selected {
+      background: #dbeafe;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Customer Management</h2>
+
+<div id="customerForm">
+
+  <label>ID:</label>
+  <input type="text" id="id" ><br>
+
+  <label>Name:</label>
+  <input type="text" id="name"><br>
+
+  <label>Email:</label>
+  <input type="email" id="email" ><br>
+
+  <label>Phone:</label>
+  <input type="text" id="phone"><br>
+
+  <button id="saveBtn">Save</button>
+  <button id="updateBtn" style="display:none;">Update</button>
+  <button id="deleteBtn" style="display:none;">Delete</button>
+  <button id="resetBtn">Clear</button>
+
+</div>
+
+<table id="customerTable">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Phone</th>
+  </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+  let selectedRow=null;
+
+  // ---------- SAVE ----------
+  $("#saveBtn").click(function(){
+
+    const id=$("#id").val();
+    const name=$("#name").val();
+    const email=$("#email").val();
+    const phone=$("#phone").val();
+
+    if(!id.trim() || !name.trim() || !email.trim() || !phone.trim()){
+      alert("Fill all fields");
+      return;
+    }
+
+    const idPattern = /^[A-Za-z0-9]{2,10}$/;
+    const namePattern = /^[A-Za-z ]{3,50}$/;
+    const phonePattern = /^[0-9]{10}$/;
+
+    if(!idPattern.test(id)){
+      alert("Invalid ID format");
+      return;
+    }
+
+    if(!namePattern.test(name)){
+      alert("Invalid Name format");
+      return;
+    }
+
+    if(!phonePattern.test(phone)){
+      alert("Phone must be 10 digits");
+      return;
+    }
+
+    $.ajax({
+      url:"http://localhost:8080/api/v1/customer/save",
+      method:"POST",
+      contentType:"application/json",
+      data : JSON.stringify({
+        id : id,
+        name : name,
+        email : email,
+        phone : phone
+      }),
+      success:function(res){
+        // alert(res);
+        // console.log(res);
+        if(res.status === 201){
+          alert(res.message);
+        }else {
+          alert("Customer not Saved!");
+        }
+        loadCustomers();
+        resetForm();
+      },
+      error:function(){
+        alert("Save Error");
+      }
+    });
+
+  });
+
+  // ---------- UPDATE ----------
+  $("#updateBtn").click(function(){
+
+    const id=$("#id").val();
+    const name=$("#name").val();
+    const email=$("#email").val();
+    const phone=$("#phone").val();
+
+    if(!id.trim() || !name.trim() || !email.trim() || !phone.trim()){
+      alert("Fill all fields");
+      return;
+    }
+
+    const idPattern = /^[A-Za-z0-9]{2,10}$/;
+    const namePattern = /^[A-Za-z ]{3,50}$/;
+    const phonePattern = /^[0-9]{10}$/;
+
+    if(!idPattern.test(id)){
+      alert("Invalid ID format");
+      return;
+    }
+
+    if(!namePattern.test(name)){
+      alert("Invalid Name format");
+      return;
+    }
+
+    if(!phonePattern.test(phone)){
+      alert("Phone must be 10 digits");
+      return;
+    }
+
+    $.ajax({
+      url:"http://localhost:8080/api/v1/customer/update",
+      method:"PUT",
+      contentType:"application/json",
+      data : JSON.stringify({
+        id:id,
+        name:name,
+        email:email,
+        phone:phone
+      }),      success:function(res){
+        alert(res);
+        loadCustomers();
+        resetForm();
+      },
+      error:function(){
+        alert("Update Error");
+      }
+    });
+
+  });
+
+  // ---------- DELETE ----------
+  $("#deleteBtn").click(function () {
+
+    const id = $("#id").val();
+
+    if (!id) {
+      alert("Select customer first");
+      return;
+    }
+
+    $.ajax({
+      url: "http://localhost:8080/api/v1/customer/delete/" + id,
+      method: "DELETE",
+      success: function (res) {
+        alert("Deleted Successfully");
+        loadCustomers();
+        resetForm();
+      },
+      error: function () {
+        alert("Delete Error");
+      }
+    });
+
+  });
+  // ---------- LOAD ----------
+  function loadCustomers(){
+    $.ajax({
+      url:"http://localhost:8080/api/v1/customer",
+      method:"GET",
+      success:function(res){
+
+        let rows = "";
+
+        if(res.status === 200 && res.data){
+
+          res.data.forEach(function(c){
+            rows += `<tr>
+                       <td>${c.id}</td>
+                       <td>${c.name}</td>
+                       <td>${c.email}</td>
+                       <td>${c.phone}</td>
+                     </tr>`;
+          });
+
+        }
+
+        $("#customerTable tbody").html(rows);
+
+        $("#customerTable tbody tr").click(function(){
+          selectRow(this);
+        });
+
+      },
+      error:function(){
+        alert("Load Error");
+      }
+    });
+  }
+
+  // ---------- SELECT ----------
+  function selectRow(row){
+
+    $("#customerTable tbody tr").removeClass("selected");
+    $(row).addClass("selected");
+
+    const cells=$(row).find("td");
+
+    $("#id").val($(cells[0]).text());
+    $("#name").val($(cells[1]).text());
+    $("#email").val($(cells[2]).text());
+    $("#phone").val($(cells[3]).text());
+
+    $("#saveBtn").hide();
+    $("#updateBtn").show();
+    $("#deleteBtn").show();
+
+  }
+
+  // ---------- RESET ----------
+  function resetForm(){
+
+    $("#id").val("");
+    $("#name").val("");
+    $("#email").val("");
+    $("#phone").val("");
+
+    $("#customerTable tbody tr").removeClass("selected");
+
+    $("#saveBtn").show();
+    $("#updateBtn").hide();
+    $("#deleteBtn").hide();
+
+  }
+
+  // clear button
+  $("#resetBtn").click(function(){
+    resetForm();
+  });
+
+  $(document).ready(function(){
+    loadCustomers();
+  });
+
+</script>
+
+</body>
+</html>

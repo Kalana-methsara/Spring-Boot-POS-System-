@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>POS System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:'Poppins', Arial, sans-serif;
+            margin:0;
+            background:#f8fafc;
+            display:flex;
+        }
+
+        .sidebar{
+            width:240px;
+            height:100vh;
+            background:#e2e8f0;
+            color:#1e293b;
+            position:fixed;
+            left:0;
+            top:0;
+            padding-top:20px;
+        }
+
+        .sidebar h2{
+            text-align:center;
+            font-weight:600;
+            margin-bottom:30px;
+        }
+
+        .sidebar a{
+            display:block;
+            padding:14px 25px;
+            color:#334155;
+            text-decoration:none;
+            font-size:15px;
+            transition:0.3s;
+        }
+
+        .sidebar a:hover{
+            background:#cbd5e1;
+            color:#1e293b;
+            padding-left:35px;
+        }
+
+        .main{
+            margin-left:240px;
+            width:100%;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+            background:#f8fafc;
+        }
+
+        header{
+            background:white;
+            padding:20px 30px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.03);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        header h1{
+            margin:0;
+            font-size:22px;
+            font-weight:600;
+            color:#1e293b;
+        }
+
+        #homeContent{
+            margin:30px;
+            background:white;
+            padding:40px;
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,0.03);
+        }
+
+        #homeContent h2{
+            margin-top:0;
+            color:#1e293b;
+        }
+
+        #homeContent p{
+            color:#64748b;
+            line-height:1.6;
+        }
+
+        #contentFrame{
+            margin:30px;
+            width:calc(100% - 60px);
+            height:calc(100vh - 120px);
+            border:none;
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,0.03);
+            background:white;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>POS System</h2>
+    <a onclick="goHome()">Dashboard</a>
+    <a onclick="loadPage('page/customer.html')">Customers</a>
+    <a onclick="loadPage('page/item.html')">Items</a>
+    <a onclick="loadPage('page/place-order.html')">Place Orders</a>
+</div>
+
+<div class="main">
+
+    <header>
+        <h1>POS Management Dashboard</h1>
+        <span>Admin Panel</span>
+    </header>
+
+    <div id="homeContent">
+        <h2>Welcome Back 👋</h2>
+        <p>
+            Use the sidebar to manage Customers, Items, and Orders.
+            This professional dashboard layout improves usability and gives your POS system a modern enterprise look.
+        </p>
+    </div>
+
+    <iframe id="contentFrame" src="" style="display:none;"></iframe>
+
+</div>
+
+<script>
+    function loadPage(url){
+        document.getElementById('homeContent').style.display = "none";
+        document.getElementById('contentFrame').style.display = "block";
+        document.getElementById('contentFrame').src = url;
+    }
+
+    function goHome(){
+        document.getElementById('contentFrame').style.display = "none";
+        document.getElementById('homeContent').style.display = "block";
+        document.getElementById('contentFrame').src = "";
+    }
+</script>
+
+</body>
+</html>

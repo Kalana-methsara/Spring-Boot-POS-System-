@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Payments</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    h2 {
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      width: 100%;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      font-weight: 600;
+      color: #334155;
+    }
+
+    tbody tr {
+      border-top: 1px solid #e2e8f0;
+      transition: 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+<h2>Payment Details</h2>
+<div class="card">
+
+<table id="paymentsTable">
+  <thead>
+  <tr>
+    <th>Order ID</th>
+    <th>Customer ID</th>
+    <th>Amount</th>
+    <th>Payment Date</th>
+  </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+</div>
+
+<script>
+  let paymentData = [];
+
+  function loadPayments() {
+    fetch('http://localhost:8080/api/v1/order')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector('#paymentsTable tbody');
+        tbody.innerHTML = '';
+        paymentData = [];
+        if(data.status === 200 && data.data){
+          data.data.forEach(p => {
+            paymentData.push(p);
+            tbody.innerHTML += `
+              <tr>
+                <td>${p.orderId}</td>
+                <td>${p.customerId}</td>
+                <td>${p.amount}</td>
+                <td>${p.paymentDate}</td>
+              </tr>
+            `;
+          });
+        }
+      })
+      .catch(err => alert('Failed to load payments'));
+  }
+
+  window.onload = function(){
+    loadPayments();
+  };
+</script>
+</body>
+</html>

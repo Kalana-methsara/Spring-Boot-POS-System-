@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Item Management</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    #itemForm {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 100%;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      display: block;
+      margin-top: 10px;
+    }
+
+    input {
+      padding: 10px;
+      margin-top: 5px;
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+      transition: 0.2s ease;
+      font-size: 14px;
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+
+    button {
+      padding: 10px 16px;
+      margin-top: 15px;
+      margin-right: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: 0.2s ease;
+    }
+
+    button:nth-of-type(1) { background: #3b82f6; color: white; }
+    button:nth-of-type(2) { background: #10b981; color: white; }
+    button:nth-of-type(3) { background: #ef4444; color: white; }
+    button:nth-of-type(4) { background: #e2e8f0; color: #1e293b; }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      font-weight: 600;
+      color: #334155;
+    }
+
+    tbody tr {
+      border-top: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    tr.selected {
+      background: #dbeafe;
+    }
+  </style>
+
+</head>
+<body>
+
+<h2>Item Management</h2>
+
+<div id="itemForm">
+  <label>ID:</label>
+  <input type="text" id="itemId"><br>
+
+  <label>Name:</label>
+  <input type="text" id="itemName"><br>
+
+  <label>Price:</label>
+  <input type="number" id="itemPrice"><br>
+
+  <label>Qty:</label>
+  <input type="number" id="itemQty"><br>
+
+  <button id="saveBtn" onclick="saveItem()">Save</button>
+  <button id="updateBtn" onclick="updateItem()" style="display:none;">Update</button>
+  <button id="deleteBtn" onclick="deleteItem()" style="display:none;">Delete</button>
+  <button id="clearBtn" onclick="clearForm()">Clear</button>
+</div>
+
+<table id="itemTable">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Price</th>
+    <th>Qty</th>
+  </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+  let selectedRow = null;
+
+  // -------- SAVE --------
+  function saveItem(){
+
+    const id = $("#itemId").val();
+    const name = $("#itemName").val();
+    const price = $("#itemPrice").val();
+    const qty = $("#itemQty").val();
+
+    if(!id || !name || !price || !qty){
+      alert("Fill all fields");
+      return;
+    }
+
+    $.ajax({
+      url:"http://localhost:8080/api/v1/item/save",
+      method:"POST",
+      contentType:"application/json",
+      data: JSON.stringify({
+        id:id,
+        name:name,
+        price:price,
+        qty:qty
+      }),
+      success:function(res){
+        alert("Saved Successfully");
+        loadItems();
+        clearForm();
+      },
+      error:function(){
+        alert("Save Error");
+      }
+    });
+  }
+
+  // -------- UPDATE --------
+  function updateItem(){
+
+    const id = $("#itemId").val();
+    const name = $("#itemName").val();
+    const price = $("#itemPrice").val();
+    const qty = $("#itemQty").val();
+
+    $.ajax({
+      url:"http://localhost:8080/api/v1/item/update",
+      method:"PUT",
+      contentType:"application/json",
+      data: JSON.stringify({
+        id:id,
+        name:name,
+        price:price,
+        qty:qty
+      }),
+      success:function(res){
+        alert("Updated Successfully");
+        loadItems();
+        clearForm();
+      },
+      error:function(){
+        alert("Update Error");
+      }
+    });
+  }
+
+  // -------- DELETE --------
+  function deleteItem(){
+
+    const id = $("#itemId").val();
+
+    if(!id){
+      alert("Select item first");
+      return;
+    }
+
+    $.ajax({
+      url:"http://localhost:8080/api/v1/item/delete/" + id,
+      method:"DELETE",
+      success:function(){
+        alert("Deleted Successfully");
+        loadItems();
+        clearForm();
+      },
+      error:function(){
+        alert("Delete Error");
+      }
+    });
+  }
+
+  // -------- LOAD --------
+  function loadItems(){
+
+    $.ajax({
+      url:"http://localhost:8080/api/v1/item",
+      method:"GET",
+      success:function(res){
+
+        let rows = "";
+
+        if(res.status === 200 && res.data){
+
+          res.data.forEach(function(item){
+            rows += `<tr>
+                       <td>${item.id}</td>
+                       <td>${item.name}</td>
+                       <td>${item.price}</td>
+                       <td>${item.qty}</td>
+                     </tr>`;
+          });
+
+        }
+
+        $("#itemTable tbody").html(rows);
+
+        $("#itemTable tbody tr").click(function(){
+          selectRow(this);
+        });
+
+      },
+      error:function(){
+        alert("Load Error");
+      }
+    });
+  }
+
+  // -------- SELECT --------
+  function selectRow(row){
+    $("#itemTable tbody tr").removeClass("selected");
+    $(row).addClass("selected");
+
+    const cells = $(row).find("td");
+
+    $("#itemId").val($(cells[0]).text());
+    $("#itemName").val($(cells[1]).text());
+    $("#itemPrice").val($(cells[2]).text());
+    $("#itemQty").val($(cells[3]).text());
+    updateButtonVisibility();
+  }
+
+  // -------- CLEAR --------
+  function clearForm(){
+    $("#itemId").val("");
+    $("#itemName").val("");
+    $("#itemPrice").val("");
+    $("#itemQty").val("");
+    $("#itemTable tbody tr").removeClass("selected");
+    updateButtonVisibility();
+  }
+
+  // -------- BUTTON VISIBILITY --------
+  function updateButtonVisibility() {
+    // If a row is selected (form has id and the row is highlighted), show Update/Delete, hide Save
+    const selected = $("#itemTable tbody tr.selected").length > 0;
+    if(selected) {
+      $("#saveBtn").hide();
+      $("#updateBtn").show();
+      $("#deleteBtn").show();
+    } else {
+      $("#saveBtn").show();
+      $("#updateBtn").hide();
+      $("#deleteBtn").hide();
+    }
+  }
+
+  // Auto load
+  $(document).ready(function(){
+    loadItems();
+    updateButtonVisibility();
+  });
+
+</script>
+
+
+</body>
+</html>
