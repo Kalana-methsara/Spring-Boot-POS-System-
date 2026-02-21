@@ -8,9 +8,18 @@ A full-stack Point of Sale (POS) System built with **Spring Boot** for the backe
 
 ## 📸 Screenshots
 
-| Dashboard | Order Management |
-|:---------:|:----------------:|
-| ![Dashboard](./screenshots/dashboard.png) | ![Orders](./screenshots/orders.png) |
+|              Customer Management              | 
+|:---------------------------------------------:|
+| ![Customer](./screenshots/customerManage.png) |
+
+
+|            Item Management            |
+|:-------------------------------------:|
+| ![Item](./screenshots/itemManage.png) |
+
+|           Orders Management            |
+|:--------------------------------------:|
+| ![Order](./screenshots/placeOrder.png) |
 
 ## 🚀 Features
 
